@@ -14,7 +14,7 @@ interface TimeTrackerProps {
   onStopTimer: () => void
 }
 
-export function TimeTracker({ tasks, onStartTimer, onStopTimer }: TimeTrackerProps) {
+export function TimeTracker({ tasks, activeTaskId, onStartTimer, onStopTimer }: TimeTrackerProps) {
 
   const [elapsedTime, setElapsedTime] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
@@ -25,7 +25,17 @@ export function TimeTracker({ tasks, onStartTimer, onStopTimer }: TimeTrackerPro
     ? tasks.find(t => t.id === currentTaskId)
     : null
 
-  // ✅ Timer logic
+  // ✅ SYNC WITH TASK BOARD (MAIN FIX)
+  useEffect(() => {
+    if (!activeTaskId) return
+
+    setCurrentTaskId(activeTaskId)
+    setElapsedTime(0)
+    setIsRunning(true)
+    setIsPaused(false)
+  }, [activeTaskId])
+
+  // ✅ TIMER
   useEffect(() => {
     if (!isRunning || isPaused) return
 
@@ -36,17 +46,17 @@ export function TimeTracker({ tasks, onStartTimer, onStopTimer }: TimeTrackerPro
     return () => clearInterval(interval)
   }, [isRunning, isPaused])
 
-  // ✅ START
+  // START from inside timer
   const handleStart = (taskId: string) => {
+    setCurrentTaskId(taskId)
     setElapsedTime(0)
     setIsRunning(true)
     setIsPaused(false)
-    setCurrentTaskId(taskId)
 
     onStartTimer(taskId)
   }
 
-  // ✅ STOP (FULL RESET FIX)
+  // STOP
   const handleStop = () => {
     setIsRunning(false)
     setIsPaused(false)
@@ -56,7 +66,6 @@ export function TimeTracker({ tasks, onStartTimer, onStopTimer }: TimeTrackerPro
     onStopTimer()
   }
 
-  // ⏱ format
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
@@ -75,7 +84,6 @@ export function TimeTracker({ tasks, onStartTimer, onStopTimer }: TimeTrackerPro
 
       <CardContent className="space-y-4">
 
-        {/* ACTIVE TIMER */}
         {activeTask ? (
           <div className="p-4 rounded-xl border bg-blue-50">
 
@@ -87,40 +95,20 @@ export function TimeTracker({ tasks, onStartTimer, onStopTimer }: TimeTrackerPro
 
               <div className="flex gap-2">
 
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => setIsPaused(!isPaused)}
-                >
-                  {isPaused ? (
-                    <>
-                      <Play className="h-4 w-4 mr-1" />
-                      Resume
-                    </>
-                  ) : (
-                    <>
-                      <Pause className="h-4 w-4 mr-1" />
-                      Pause
-                    </>
-                  )}
+                <Button size="sm" onClick={() => setIsPaused(!isPaused)}>
+                  {isPaused ? "Resume" : "Pause"}
                 </Button>
 
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={handleStop}
-                >
-                  <Square className="h-4 w-4 mr-1 fill-current" />
+                <Button size="sm" variant="destructive" onClick={handleStop}>
                   Stop
                 </Button>
 
               </div>
             </div>
 
-            {/* TIMER DISPLAY */}
             <div
               className={cn(
-                "text-3xl mt-4 font-bold text-blue-600 transition-all",
+                "text-3xl mt-4 font-bold text-blue-600",
                 !isPaused && "animate-pulse"
               )}
             >
