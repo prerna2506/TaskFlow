@@ -7,12 +7,13 @@ import { Label } from '@/components/ui/label'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { LayoutDashboard, Loader2, ArrowRight } from 'lucide-react'
+import { LayoutDashboard, Loader2, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function Page() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false) // 👈 NEW
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
@@ -60,6 +61,7 @@ export default function Page() {
 
           <form onSubmit={handleLogin} className="space-y-4">
 
+            {/* EMAIL */}
             <div>
               <Label className="text-zinc-300">Email</Label>
               <Input
@@ -71,17 +73,32 @@ export default function Page() {
               />
             </div>
 
-            <div>
+            {/* PASSWORD WITH EYE */}
+            <div className="relative">
               <Label className="text-zinc-300">Password</Label>
+
               <Input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="bg-zinc-800 text-white border-zinc-600 placeholder:text-zinc-400"
+                className="bg-zinc-800 text-white border-zinc-600 placeholder:text-zinc-400 pr-10"
               />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-9 text-zinc-400 hover:text-white"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
             </div>
 
+            {/* BUTTON */}
             <Button className="w-full" disabled={isLoading}>
               {isLoading ? <Loader2 className="animate-spin" /> : "Sign In"}
             </Button>
